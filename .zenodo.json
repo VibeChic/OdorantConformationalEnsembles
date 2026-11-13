@@ -2,7 +2,7 @@
   "title": "Code for: Odorant conformational ensembles encode topology, molecular size and polar-surface coherence, not shape",
   "upload_type": "software",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "access_right": "open",
   "creators": [
     {
@@ -25,6 +25,11 @@
       "relation": "isSupplementTo",
       "identifier": "https://github.com/VibeChic/OdorantConformationalEnsembles",
       "scheme": "url"
+    },
+    {
+      "relation": "isSupplementTo",
+      "identifier": "10.5281/zenodo.24187222",
+      "scheme": "doi"
     }
   ]
 }

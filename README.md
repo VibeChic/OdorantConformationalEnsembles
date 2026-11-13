@@ -46,6 +46,8 @@ docker build -t landscape-md:1.1 container/
 # 2. data (QH-Odor-1821, CC BY 4.0)
 export ZENODO_RECORD=24187214             # QH-Odor-1821 (concept record id)
 python scripts/download_zenodo_data.py --record "$ZENODO_RECORD" --out data
+# quick audit only (skips the 72 MB conformer archive):
+#   ... --include cohorts probes metrics
 
 # 3. audits (public mode: reads only the downloaded bundle)
 python p2/audit.py --data-dir data

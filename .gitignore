@@ -36,3 +36,8 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+# generated audit reports
+audit_p*_public.md
+release_metadata.json
+p3/reports/

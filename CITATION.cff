@@ -6,7 +6,10 @@ license: MIT
 version: 1.0.0
 date-released: 2026-11-13
 authors:
-  - name: "The OdorantConformationalEnsembles authors"
+  - family-names: "Shang"
+    given-names: "Yuan"
+    affiliation: "Zhengzhou University"
+    orcid: "https://orcid.org/0000-0003-0044-0236"
 repository-code: "https://github.com/VibeChic/OdorantConformationalEnsembles"
 keywords:
   - conformational ensemble

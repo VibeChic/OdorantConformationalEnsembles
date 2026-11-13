@@ -4,6 +4,7 @@ Exit code 0 only if all required files exist and the core consistency checks pas
 """
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -26,7 +27,50 @@ REQUIRED = [
 ]
 
 
+def public_mode(data_dir: Path) -> int:
+    """Verify the released QH-Odor-1821 bundle without the project working tree."""
+    import numpy as np
+
+    cohort = data_dir / "cohorts" / "gs_lf_4809_master_observables.csv"
+    c95 = data_dir / "probes" / "saturation_c95_1821.csv"
+    lines = ["# Paper 3 audit (public bundle)", ""]
+    if not cohort.exists():
+        print(f"missing {cohort}")
+        return 2
+
+    d = pd.read_csv(cohort)
+    checks = {
+        "n_molecules == 4809": len(d) == 4809,
+        "sum(Phase I conformers) == 55895": int(d.n_conf.sum()) == 55895,
+        "split 3363/716/730": d.split.value_counts().to_dict() == {"train": 3363, "test": 730, "val": 716},
+        "censored == 601": int(d.has_censored.sum()) == 601,
+        "maxcap 2987 x 20 / 1822 x 200": d.maxcap.value_counts().to_dict() == {20: 2987, 200: 1822},
+        "complete cohort 1821 molecules / 106526 conformers":
+            (int(d.n_conf_complete.notna().sum()) == 1821 and int(d.n_conf_complete.sum()) == 106526),
+        "N_eff == exp(S_conf)": float((d.N_eff - np.exp(d.S_conf)).abs().div(d.N_eff).max()) < 1e-9,
+        "sigma(polar SASA) complete": bool(d.sigma_sasa_polar.notna().all()),
+    }
+    if c95.exists():
+        c = pd.read_csv(c95)
+        checks["median C95 == 28 (n=1821)"] = (len(c) == 1821 and float(c.C95.median()) == 28.0)
+    ok = all(checks.values())
+    for k, v in checks.items():
+        lines.append(f"- {'PASS' if v else 'FAIL'}: {k}")
+    lines += ["", "Skipped in public mode: project-tree presence checks "
+                  "(cache/, results/wp*) and manuscript text comparison.", ""]
+    lines.append(f"**Overall**: {'PASS' if ok else 'FAIL'}")
+    print("\n".join(lines))
+    (Path.cwd() / "audit_p3_public.md").write_text("\n".join(lines) + "\n")
+    return 0 if ok else 1
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data-dir", default=None, help="QH-Odor-1821 bundle (public mode)")
+    args = ap.parse_args()
+    if args.data_dir:
+        return public_mode(Path(args.data_dir))
+
     lines = ["# Paper 3 audit", ""]
     ok = True
     lines.append("## PRESENT")
@@ -64,6 +108,7 @@ def main() -> int:
 
     lines.append("")
     lines.append(f"**Overall**: {'PASS' if ok else 'FAIL'}")
+    REPORTS.mkdir(parents=True, exist_ok=True)
     (REPORTS / "audit.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     return 0 if ok else 1

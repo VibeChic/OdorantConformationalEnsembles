@@ -17,10 +17,16 @@ import torch
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-ROOT = Path(__file__).resolve().parents[2]
+_HERE = Path(__file__).resolve()
+# Monorepo layout: <root>/paper3/p3/common.py ; release layout: <repo>/p3/common.py
+if (_HERE.parents[2] / "paper3").exists():
+    ROOT = _HERE.parents[2]
+    PAPER3 = ROOT / "paper3"
+else:
+    PAPER3 = _HERE.parents[1]
+    ROOT = PAPER3
 PAPER2_CACHE = ROOT / "paper2" / "cache"
 DATA = ROOT / "data"
-PAPER3 = ROOT / "paper3"
 CACHE = PAPER3 / "cache"
 RESULTS = PAPER3 / "results"
 REPORTS = PAPER3 / "reports"

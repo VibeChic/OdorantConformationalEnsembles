@@ -1,6 +1,13 @@
-"""Paper 3 audit: PRESENT / ABSENT / CONSISTENCY checks.
+"""Paper 3 audit.
 
-Exit code 0 only if all required files exist and the core consistency checks pass.
+Two modes:
+
+* ``python p3/audit.py`` — project mode. Checks the internal working tree
+  (``cache/``, ``results/wp*``) and writes ``p3/reports/audit.md``.
+* ``python p3/audit.py --data-dir data`` — public mode. Checks the released
+  QH-Odor-1821 bundle only; needs numpy and pandas, nothing else.
+
+Exit code 0 only if every check in the selected mode passes.
 """
 from __future__ import annotations
 
@@ -12,30 +19,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from p3.common import CACHE, REPORTS, RESULTS  # noqa: E402
-
-REQUIRED = [
-    CACHE / "ensemble_observables.csv",
-    CACHE / "observables_manifest.json",
-    RESULTS / "wp1_semantic" / "wp1_summary.json",
-    RESULTS / "wp2_m2or" / "wp2_summary.json",
-    RESULTS / "wp3_cliffs" / "wp3_summary.json",
-    RESULTS / "wp4_dream" / "wp4_summary.json",
-    RESULTS / "wp5_bioactive" / "wp5_summary.json",
-]
-
 
 def public_mode(data_dir: Path) -> int:
-    """Verify the released QH-Odor-1821 bundle without the project working tree."""
-    import numpy as np
-
+    """Verify the released bundle without the project working tree."""
     cohort = data_dir / "cohorts" / "gs_lf_4809_master_observables.csv"
     c95 = data_dir / "probes" / "saturation_c95_1821.csv"
     lines = ["# Paper 3 audit (public bundle)", ""]
     if not cohort.exists():
-        print(f"missing {cohort}")
+        print("missing %s" % cohort)
         return 2
 
     d = pd.read_csv(cohort)
@@ -55,28 +46,34 @@ def public_mode(data_dir: Path) -> int:
         checks["median C95 == 28 (n=1821)"] = (len(c) == 1821 and float(c.C95.median()) == 28.0)
     ok = all(checks.values())
     for k, v in checks.items():
-        lines.append(f"- {'PASS' if v else 'FAIL'}: {k}")
-    lines += ["", "Skipped in public mode: project-tree presence checks "
-                  "(cache/, results/wp*) and manuscript text comparison.", ""]
-    lines.append(f"**Overall**: {'PASS' if ok else 'FAIL'}")
+        lines.append("- %s: %s" % ("PASS" if v else "FAIL", k))
+    lines += ["", "Skipped in public mode: project-tree presence checks (cache/, results/wp*) "
+                  "and manuscript text comparison.", ""]
+    lines.append("**Overall**: " + ("PASS" if ok else "FAIL"))
     print("\n".join(lines))
     (Path.cwd() / "audit_p3_public.md").write_text("\n".join(lines) + "\n")
     return 0 if ok else 1
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--data-dir", default=None, help="QH-Odor-1821 bundle (public mode)")
-    args = ap.parse_args()
-    if args.data_dir:
-        return public_mode(Path(args.data_dir))
+def project_mode() -> int:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from p3.common import CACHE, REPORTS, RESULTS  # heavy imports stay in this mode
 
+    required = [
+        CACHE / "ensemble_observables.csv",
+        CACHE / "observables_manifest.json",
+        RESULTS / "wp1_semantic" / "wp1_summary.json",
+        RESULTS / "wp2_m2or" / "wp2_summary.json",
+        RESULTS / "wp3_cliffs" / "wp3_summary.json",
+        RESULTS / "wp4_dream" / "wp4_summary.json",
+        RESULTS / "wp5_bioactive" / "wp5_summary.json",
+    ]
     lines = ["# Paper 3 audit", ""]
     ok = True
     lines.append("## PRESENT")
-    for p in REQUIRED:
+    for p in required:
         exists = p.exists()
-        lines.append(f"- {'OK' if exists else 'MISSING'}: `{p.relative_to(p.parents[2])}`")
+        lines.append(f"- {'OK' if exists else 'MISSING'}: `{p.relative_to(p.parents[2]) if p.parents[2] in p.parents else p.name}`")
         ok = ok and exists
 
     lines.append("")
@@ -112,6 +109,15 @@ def main() -> int:
     (REPORTS / "audit.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     return 0 if ok else 1
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data-dir", default=None, help="QH-Odor-1821 bundle (public mode)")
+    args = ap.parse_args()
+    if args.data_dir:
+        return public_mode(Path(args.data_dir))
+    return project_mode()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,27 @@
+Data licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
+==========================================================================
+
+Scope
+-----
+This licence applies to the **data** distributed with this project, namely:
+
+  * the QH-Odor-1821 dataset archived on Zenodo and downloaded by
+    `scripts/download_zenodo_data.py`;
+  * any derived tables, observables, metrics JSON and figure source data
+    (e.g. `figure_source_data.json`, `source_data_paper2_arms.json`)
+    distributed in that Zenodo record.
+
+It does **not** apply to the source code in this repository, which is
+licensed under the MIT Licence (see `LICENSE`).
+
+You are free to share and adapt the data for any purpose, provided that you
+give appropriate credit, link to the licence, and indicate whether changes
+were made.
+
+Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode
+
+Suggested attribution
+---------------------
+"The authors of OdorantConformationalEnsembles (2026). QH-Odor-1821:
+complete 300 K GFN2-xTB conformational ensembles and multi-tier olfactory
+benchmark data. Zenodo. https://doi.org/10.5281/zenodo.[DATA_DOI]"

@@ -1,0 +1,38 @@
+# data and intermediate results (distributed via Zenodo, not git)
+cache/
+results/
+v3_results/
+data/
+dist/
+*.sdf
+*.sdf.gz
+*.parquet
+*.npz
+*.pkl
+*.pt
+*.h5
+
+# figure assets are not part of the code release
+Figures/
+*.png
+*.pdf
+*.svg
+*.tif
+*.tiff
+
+# credentials
+token*.csv
+.env
+.env.*
+
+# python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/

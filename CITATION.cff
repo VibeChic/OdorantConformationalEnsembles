@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite both the software archive and the accompanying article."
+title: "Code for: Odorant conformational ensembles encode topology, molecular size and polar-surface coherence, not shape"
+type: software
+license: MIT
+version: 1.0.0
+date-released: 2026-11-13
+authors:
+  - name: "The OdorantConformationalEnsembles authors"
+repository-code: "https://github.com/VibeChic/OdorantConformationalEnsembles"
+keywords:
+  - conformational ensemble
+  - odour breadth
+  - molecular representation
+  - polar-surface fluctuation
+  - rotatable-bond topology
+  - GFN2-xTB
+  - pre-registered benchmark

@@ -1,0 +1,12 @@
+Bootstrap: docker
+From: landscape-md:1.1
+
+%labels
+    Version 1.1
+    Description Conformer generation, GFN2-xTB thermochemistry and neural olfactory benchmarks
+
+%post
+    mkdir -p /workspace
+
+%runscript
+    exec /bin/bash "$@"

@@ -140,11 +140,51 @@ def data_truth():
     }
 
 
+EXPECTED = {  # manuscript values: mean +/- sample s.d. over 10 seeds
+    "R1": (0.3187, 0.0029), "SCHNET": (0.3081, 0.0068), "EN4": (0.3275, 0.0039),
+    "en4_s2d": (0.3316, 0.0031), "wide_en1": (0.3318, 0.0033),
+    "en4_size": (0.3288, 0.0035), "en4_shape": (0.3197, 0.0031),
+}
+
+
+def public_mode(data_dir):
+    """Verify the released metrics table without the project working tree."""
+    metrics = os.path.join(data_dir, "metrics", "paper2_21arms_10seeds_metrics.json")
+    if not os.path.exists(metrics):
+        print("missing " + metrics)
+        return 2
+    m = json.load(open(metrics))["arms"]
+    lines = ["# Paper 2 audit (public bundle)", ""]
+    checks = {"21 arms": len(m) == 21,
+              "10 seeds per arm": all(len(v) == 10 for v in m.values()),
+              "no NaN": all(s["macro_aucpr"] is not None for v in m.values() for s in v)}
+    for arm, (mu, sd) in EXPECTED.items():
+        vals = np.array([s["macro_aucpr"] for s in m.get(arm, [])])
+        ok = (len(vals) == 10 and abs(vals.mean() - mu) < 5e-4
+              and abs(vals.std(ddof=1) - sd) < 5e-4)
+        checks["%s = %.4f +/- %.4f" % (arm, mu, sd)] = bool(ok)
+    ok = all(checks.values())
+    for k, v in checks.items():
+        lines.append("- %s: %s" % ("PASS" if v else "FAIL", k))
+    lines += ["", "Skipped in public mode: manuscript text checks (no --doc in the release).", ""]
+    lines.append("**Overall**: " + ("PASS" if ok else "FAIL"))
+    print("\n".join(lines))
+    open("audit_p2_public.md", "w").write("\n".join(lines) + "\n")
+    return 0 if ok else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--doc", default=os.path.join(PROJ, "reports", "Paper2_manuscript_v3.1_nc.md"))
+    ap.add_argument("--data-dir", default=None, help="QH-Odor-1821 bundle (public mode)")
     args = ap.parse_args()
+    if args.data_dir:
+        sys.exit(public_mode(args.data_dir))
 
+    if not os.path.exists(args.doc):
+        print("project mode needs --doc (manuscript markdown); "
+              "use --data-dir for the public bundle")
+        sys.exit(2)
     text = open(args.doc).read()
     t = truth()
     failures = []

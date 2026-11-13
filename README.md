@@ -44,16 +44,18 @@ make_figures_p3.py  Paper 3 panels (cohort, saturation, curvature, probes)
 docker build -t landscape-md:1.1 container/
 
 # 2. data (QH-Odor-1821, CC BY 4.0)
-export ZENODO_RECORD=<record-id>          # printed on the Zenodo record page
+export ZENODO_RECORD=24187214             # QH-Odor-1821 (concept record id)
 python scripts/download_zenodo_data.py --record "$ZENODO_RECORD" --out data
 
 # 3. audits (public mode: reads only the downloaded bundle)
 python p2/audit.py --data-dir data
 python p3/audit.py --data-dir data
 
-# 4. figures (source data come from the data bundle, not from this repository)
-python make_figures.py out_figures
-python make_figures_p3.py out_figures
+# 4. figures (optional)
+#    The figure scripts read the project working tree (results/, cache/,
+#    v3_results/), which is not part of this repository. The values they plot
+#    are shipped as Figures/*.json inside the data bundle, so every panel can
+#    be checked numerically without re-running the models.
 ```
 
 ### Reproduction status
@@ -94,9 +96,15 @@ Stage 1 returned a 95% bootstrap half-width of 0.099 > 0.05) is in
 
 ## Citation
 
-See `CITATION.cff`. The archived release is deposited on Zenodo
-(`10.5281/zenodo.[CODE_DOI]`, to be minted at publication) and links to the
-data record (`10.5281/zenodo.[DATA_DOI]`).
+See `CITATION.cff`. Archive this code via the Zenodo concept DOI
+`10.5281/zenodo.24189991`; the data are at `10.5281/zenodo.24187222`.
+
+## Dependencies
+
+The complete environment is the container (`container/Dockerfile`). For the
+audits alone, `pip install -r requirements-audit.txt` is enough: public mode
+needs numpy and pandas only. `requirements.txt` lists the full stack used for
+training and conformer generation.
 
 ## Contact
 

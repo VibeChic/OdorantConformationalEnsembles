@@ -47,9 +47,9 @@ docker build -t landscape-md:1.1 container/
 export ZENODO_RECORD=<record-id>          # printed on the Zenodo record page
 python scripts/download_zenodo_data.py --record "$ZENODO_RECORD" --out data
 
-# 3. audits
-python p2/audit.py
-python p3/audit.py
+# 3. audits (public mode: reads only the downloaded bundle)
+python p2/audit.py --data-dir data
+python p3/audit.py --data-dir data
 
 # 4. figures (source data come from the data bundle, not from this repository)
 python make_figures.py out_figures
@@ -58,14 +58,17 @@ python make_figures_p3.py out_figures
 
 ### Reproduction status
 
-The code in this repository is the **exact version that produced the
-manuscript**. The audits were executed against the project working layout
-(`cache/`, `results/`, `v3_results/`), which is reconstructed from the Zenodo
-bundle. Two adapters — `DATA_DIR` for `p3/` and `--metrics-root` for `p2/` —
-are being finalised so that both audits can run from a clean checkout using
-only the public bundle; until they land, `p2/audit.py` and `p3/audit.py`
-require the working layout described in `preregistration/` and in the Zenodo
-`README_DATA.md`.
+Both audits run from a clean checkout against the published bundle:
+
+```bash
+python p2/audit.py --data-dir data   # 21 arms x 10 seeds, headline means/s.d.
+python p3/audit.py --data-dir data   # cohort invariants, C95, N_eff identity
+```
+
+Without `--data-dir` they run in project mode against the internal working
+layout (`cache/`, `results/`, `v3_results/`) and additionally compare the
+manuscript text (`--doc`). Public mode verifies the released data and the
+headline statistics; it does not re-fit the NB2 models.
 
 ## What is deliberately not here
 

@@ -5,7 +5,11 @@
   "version": "1.0.0",
   "access_right": "open",
   "creators": [
-    {"name": "The OdorantConformationalEnsembles authors"}
+    {
+      "name": "Shang, Yuan",
+      "affiliation": "Zhengzhou University",
+      "orcid": "0000-0003-0044-0236"
+    }
   ],
   "keywords": [
     "conformational ensemble",
@@ -17,6 +21,10 @@
     "pre-registered benchmark"
   ],
   "related_identifiers": [
-    {"relation": "isSupplementTo", "identifier": "https://github.com/VibeChic/OdorantConformationalEnsembles", "scheme": "url"}
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/VibeChic/OdorantConformationalEnsembles",
+      "scheme": "url"
+    }
   ]
 }

@@ -228,10 +228,19 @@ def main() -> int:
     df = df.merge(reg, left_on="inchikey", right_on="ik", how="left").drop(columns=["ik"])
     df["pyrfume_id"] = df["CID"].astype("Int64")
     df["molecule_id"] = df["name"]
-    df["maxcap"] = df["capped20"].map({True: 20, False: 200}) if "capped20" in df else np.where(df.n_conf >= 100, 200, 20)
+    if "capped20" in df:
+        df["capped20"] = df["capped20"].astype(int)
+        df["maxcap"] = np.where(df["capped20"] == 1, 200, 20)
+    else:
+        df["maxcap"] = np.where(df.n_conf >= 100, 200, 20)
+    # retained conformers in the complete-ensemble cohort (Phase II); NaN for the 2,987 exact molecules
+    _c95 = pd.read_csv(p3 / "v3_results/exp18_figdata/sat_c95.csv")
+    _n2 = _c95.set_index("name")["n_conf"]
+    df["n_conf_complete"] = df["name"].map(_n2)
     cols = ["molecule_id", "pyrfume_id", "smiles", "split", "L_sem", "mw", "clogp", "hba", "tpsa",
             "unspecified_stereo", "run_pass", "n_rotors_pipeline", "n_rotors_rdkit", "n_ring_flex",
-            "has_censored", "maxcap", "n_conf", "S_conf", "N_eff", "rmsd_ab", "rg_mean", "sigma2_rg",
+            "has_censored", "maxcap", "capped20", "n_conf", "n_conf_complete",
+            "S_conf", "N_eff", "rmsd_ab", "rg_mean", "sigma2_rg",
             "npr1_mean", "npr2_mean", "tr_sigma_npr", "sasa_polar_mean", "sigma_sasa_polar", "inchikey"]
     cols = [c for c in cols if c in df.columns]
     table = df[cols].rename(columns={"run_pass": "batch_id"})

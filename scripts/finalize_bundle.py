@@ -81,6 +81,14 @@ separate repository.
 * `m2or_ligand_panel_294.csv` is the 3D-overlap subset used in every receptor
   model; the wider 488-ligand assay matrix is not redistributed.
 
+## Filenames in the Zenodo record
+
+The bucket API rejects keys containing `/`, so the 16 files are stored with
+`__` in place of the directory separator (for example
+`cohorts__gs_lf_4809_master_observables.csv.gz`). `SHA256SUMS.txt` lists the
+original relative paths; replace `__` with `/` before running
+`sha256sum -c`, or download the files and reconstruct the tree.
+
 ## Reproducing the numbers
 
 ```bash

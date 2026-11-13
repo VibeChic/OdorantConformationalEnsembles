@@ -29,6 +29,10 @@ def main() -> int:
     ap.add_argument("--api", default=os.environ.get("ZENODO_API_URL", "https://zenodo.org/api"))
     ap.add_argument("--publish", action="store_true")
     ap.add_argument("--meta-out", default="release_metadata.json")
+    ap.add_argument("--version", default="1.0.0")
+    ap.add_argument("--related-url", default=None,
+                    help="immutable snapshot URL (commit or tag); defaults to <repo>/tree/v1.0.0")
+    ap.add_argument("--creators-json", default=None)
     args = ap.parse_args()
 
     token = os.environ.get("ZENODO_TOKEN")
@@ -37,17 +41,20 @@ def main() -> int:
         return 2
     h = {"Authorization": f"Bearer {token}"}
 
-    related = [{"relation": "isSupplementTo", "identifier": f"{args.repo}/tree/v1.0.0",
+    snap = args.related_url or f"{args.repo}/tree/v1.0.0"
+    related = [{"relation": "isSupplementTo", "identifier": snap,
                 "scheme": "url", "resource_type": "software"}]
     if args.data_doi:
         related.append({"relation": "isSupplementTo",
                         "identifier": f"https://doi.org/{args.data_doi}",
                         "scheme": "doi", "resource_type": "dataset"})
 
+    import json as _json
+    creators = (_json.load(open(args.creators_json)) if args.creators_json
+                else [{"name": "The OdorantConformationalEnsembles authors"}])
     meta = {"upload_type": "software", "title": TITLE, "license": "MIT",
-            "version": "1.0.0", "access_right": "open",
-            "creators": [{"name": "The OdorantConformationalEnsembles authors"}],
-            "related_identifiers": related}
+            "version": args.version, "access_right": "open",
+            "creators": creators, "related_identifiers": related}
 
     r = requests.post(f"{args.api}/deposit/depositions", json={}, headers=h, timeout=60)
     r.raise_for_status()

@@ -47,6 +47,8 @@ def main() -> int:
     ap.add_argument("--api", default=os.environ.get("ZENODO_API_URL", "https://zenodo.org/api"))
     ap.add_argument("--publish", action="store_true")
     ap.add_argument("--meta-out", default="release_metadata.json")
+    ap.add_argument("--deposition-id", type=int, default=None,
+                    help="reuse an existing empty draft instead of creating one")
     args = ap.parse_args()
 
     token = os.environ.get("ZENODO_TOKEN")
@@ -61,9 +63,14 @@ def main() -> int:
         print(f"no files under {root}", file=sys.stderr)
         return 2
 
-    r = requests.post(f"{args.api}/deposit/depositions", json={}, headers=h, timeout=60)
-    r.raise_for_status()
-    dep = r.json()
+    if args.deposition_id:
+        r = requests.get(f"{args.api}/deposit/depositions/{args.deposition_id}", headers=h, timeout=60)
+        r.raise_for_status()
+        dep = r.json()
+    else:
+        r = requests.post(f"{args.api}/deposit/depositions", json={}, headers=h, timeout=60)
+        r.raise_for_status()
+        dep = r.json()
     dep_id, bucket = dep["id"], dep["links"]["bucket"]
     doi = dep["metadata"]["prereserve_doi"]["doi"]
     print(f"deposition {dep_id}, reserved DOI {doi}")
@@ -73,13 +80,16 @@ def main() -> int:
     r.raise_for_status()
 
     uploaded = []
+    # Zenodo buckets do not accept "/" in keys: flatten, and record the mapping.
     for p in tqdm(files, unit="file"):
         rel = str(p.relative_to(root))
+        key = rel.replace("/", "__")
         with open(p, "rb") as fh:
-            resp = requests.put(f"{bucket}/{rel}", data=fh, headers=h, timeout=600)
+            resp = requests.put(f"{bucket}/{key}", data=fh, headers=h, timeout=1800)
         resp.raise_for_status()
         info = resp.json()
-        uploaded.append({"file": rel, "bytes": p.stat().st_size,
+        stored = info.get("key") or info.get("metadata", {}).get("key")
+        uploaded.append({"path": rel, "key": stored or key, "bytes": p.stat().st_size,
                          "checksum": info.get("checksum"), "id": info.get("id")})
     print(f"uploaded {len(uploaded)} file(s)")
 
